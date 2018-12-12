@@ -1,4 +1,4 @@
-# Waveplus
+# Airthings Wave Plus Sensor Reader
 
 This is a project to provide users an interface (```read_waveplus.py```) to read current sensor values from the
 [Airthings Wave Plus](https://airthings.com/wave-plus/) devices using a Raspberry Pi 3 
