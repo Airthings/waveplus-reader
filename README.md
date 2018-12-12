@@ -9,10 +9,43 @@ temperature, air presssure, humidity, TVOCs and CO2.
 
 **Table of contents**
 
-* [Requirements](#Requirements)
-  * [Setup Raspberry Pi](##Setup-Raspberry-Pi)
+* [Requirements](#requirements)
+  * [Setup Raspberry Pi](#setup-Raspberry-pi)
+  * [Turn on the BLE interface](#turn-on-the-ble-interface)
+  * [Installing linux and python packages](#installing-linux-and-python-packages)
+  * [Downloading this repo](#downloading-this-repo)
+* [Usage](#usage)
+  * [Printing data to the terminal window](#printing-data-to-the-terminal-window)
+  * [Piping data to a text-file](#piping-data-to-a-text-file)
+* [Sensor data description](#sensor-data-description)
+* [Release notes](#release-notes)  
 
 # Requirements
+
+The following tables shows a compact overview of dependencies for this project.
+
+**List of OS dependencies**
+
+| OS | model/version | Comments |
+|-------------|-------------|-------------|
+| Raspberry Pi 3 | Model B | Raspbian image
+| Linux          | x86 Debian | Should work according to [bluepy](https://github.com/IanHarvey/bluepy)
+
+**List of linux/raspberry dependencies**
+
+| package | version | Comments |
+|-------------|-------------|-------------|
+| python  | 2.7 | Tested with python 2.7.13
+| python-pip | | pip for python2.7
+| git        | | To download this project
+| libglib2.0-dev  | | For bluepy module
+
+**List of Python dependencies**
+
+| module | version | Comments |
+|-------------|-------------|-------------|
+| bluepy      | 1.2.0 | Newer versions have not been tested.
+| tableprint  | 0.8.0 | Newer versions have not been tested.
 
 ## Setup Raspberry Pi
 
@@ -33,7 +66,7 @@ $ ssh pi@raspberrypi.local
 
 The default password for the “pi” user is “raspberry”.
 
-## Make sure the BLE interface is turned on
+## Turn on the BLE interface
 
 In the terminal window on you Raspberry Pi:
 
@@ -123,7 +156,7 @@ pi@raspberrypi:~/waveplus $ sudo python2 read_waveplus.py [SN] pipe > yourfile.t
 
 where you change [SN] with the 10-digit serial number. Exit the script using “Ctrl + c”.
 
-# Data description
+# Sensor data description
 
 | sensor | units | Comments |
 |-------------|-------------|-------------|
