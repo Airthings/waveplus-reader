@@ -7,6 +7,10 @@ Model B over Bluetooth Low Energy (BLE).
 Airthings Wave Plus is a smart IAQ monitor with Radon detection, including sensors for
 temperature, air presssure, humidity, TVOCs and CO2.
 
+**Table of contents**
+
+[TOC]
+
 # Requirements
 
 ## Setup Raspberry Pi
