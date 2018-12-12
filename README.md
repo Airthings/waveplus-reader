@@ -13,7 +13,7 @@ temperature, air presssure, humidity, TVOCs and CO2.
   * [Setup Raspberry Pi](#setup-Raspberry-pi)
   * [Turn on the BLE interface](#turn-on-the-ble-interface)
   * [Installing linux and python packages](#installing-linux-and-python-packages)
-  * [Downloading this repo](#downloading-this-repo)
+  * [Downloading script](#downloading-script)
 * [Usage](#usage)
   * [Printing data to the terminal window](#printing-data-to-the-terminal-window)
   * [Piping data to a text-file](#piping-data-to-a-text-file)
@@ -112,10 +112,18 @@ pi@raspberrypi:~$ sudo pip2 install tableprint==0.8.0
 
 > Note: The ```read_waveplus.py``` script has been tested with bluepy==1.2.0 and tableprint==0.8.0. You may download the latest versions at your own risk.
 
-## Downloading this repo
+## Downloading script
+
+Downloading using git:
 
 ```
 pi@raspberrypi:~$ sudo git clone https://github.com/Airthings/waveplus.git
+```
+
+Downloading using wget:
+
+```
+pi@raspberrypi:~$ wget https://raw.githubusercontent.com/Airthings/waveplus/master/read_waveplus.py
 ```
 
 # Usage
@@ -127,7 +135,7 @@ of your Airthings Wave Plus.
 If your device is paired and connected to e.g. a phone, you may need to turn off bluetooth on
 your phone while using this script.
 
-```cd``` into the waveplus directory
+```cd``` into the directory where the read_waveplus.py script is located.
 
 ```
 pi@raspberrypi:~$ cd waveplus
