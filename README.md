@@ -9,7 +9,8 @@ temperature, air presssure, humidity, TVOCs and CO2.
 
 **Table of contents**
 
-[TOC]
+* [Requirements](#Requirements)
+  * [Setup Raspberry Pi](##Setup-Raspberry-Pi)
 
 # Requirements
 
