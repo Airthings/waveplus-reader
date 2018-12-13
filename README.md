@@ -141,6 +141,8 @@ your phone while using this script.
 pi@raspberrypi:~$ cd waveplus-reader
 ```
 
+> Note: The Wave Plus has a sensor sampling frequency of roughly 5 minutes, thus the current sensor values reported will remain the same between each time the Wave Plus requests a new reading from all the sensors. It is currently not possible to change the frequency which the Wave Plus reads from its sensors.
+
 ## Printing data to the terminal window
 
 Run the Python script ```read_waveplus.py``` in the following way:
