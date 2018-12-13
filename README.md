@@ -117,13 +117,13 @@ pi@raspberrypi:~$ sudo pip2 install tableprint==0.8.0
 Downloading using git:
 
 ```
-pi@raspberrypi:~$ sudo git clone https://github.com/Airthings/waveplus.git
+pi@raspberrypi:~$ sudo git clone https://github.com/Airthings/waveplus-reader.git
 ```
 
 Downloading using wget:
 
 ```
-pi@raspberrypi:~$ wget https://raw.githubusercontent.com/Airthings/waveplus/master/read_waveplus.py
+pi@raspberrypi:~$ wget https://raw.githubusercontent.com/Airthings/waveplus-reader/master/read_waveplus.py
 ```
 
 # Usage
@@ -138,7 +138,7 @@ your phone while using this script.
 ```cd``` into the directory where the read_waveplus.py script is located.
 
 ```
-pi@raspberrypi:~$ cd waveplus
+pi@raspberrypi:~$ cd waveplus-reader
 ```
 
 ## Printing data to the terminal window
@@ -146,7 +146,7 @@ pi@raspberrypi:~$ cd waveplus
 Run the Python script ```read_waveplus.py``` in the following way:
 
 ```
-pi@raspberrypi:~/waveplus $ sudo python2 read_waveplus.py [SN] terminal
+pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py [SN] terminal
 ```
 
 where you change [SN] with the 10-digit serial number. 
@@ -159,7 +159,7 @@ Raspberry Pi terminal window. Exit the script using “Ctrl + c”.
 If you want to pipe the results to a text-file, you can run the script in the following way:
 
 ```
-pi@raspberrypi:~/waveplus $ sudo python2 read_waveplus.py [SN] pipe > yourfile.txt
+pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py [SN] pipe > yourfile.txt
 ```
 
 where you change [SN] with the 10-digit serial number. Exit the script using “Ctrl + c”.
