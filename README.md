@@ -5,7 +5,7 @@ This is a project to provide users an interface (```read_waveplus.py```) to read
 Model B over Bluetooth Low Energy (BLE).
 
 Airthings Wave Plus is a smart IAQ monitor with Radon detection, including sensors for
-temperature, air presssure, humidity, TVOCs and CO2.
+temperature, air pressure, humidity, TVOCs and CO2.
 
 **Table of contents**
 
@@ -68,7 +68,7 @@ The default password for the “pi” user is “raspberry”.
 
 ## Turn on the BLE interface
 
-In the terminal window on you Raspberry Pi:
+In the terminal window on your Raspberry Pi:
 
 ```
 pi@raspberrypi:~$ bluetoothctl
@@ -135,21 +135,36 @@ of your Airthings Wave Plus.
 If your device is paired and connected to e.g. a phone, you may need to turn off bluetooth on
 your phone while using this script.
 
-```cd``` into the directory where the read_waveplus.py script is located.
+```cd``` into the directory where the read_waveplus.py script is located if you cloned the repo.
+
+The general format for calling the ```read_waveplus.py``` script is as follows:
 
 ```
-pi@raspberrypi:~$ cd waveplus-reader
+read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfilename.txt]
 ```
+
+where the input arguments are:
+
+| input argument | example | Comments |
+|-------------|-------------|-------------|
+| SN            | 0123456789              | 10-digit number. Can be found under the magnetic backplate of your Airthings Wave Plus.
+| SAMPLE-PERIOD | 60                      | Read sensor values every 60 seconds. Must be larger than zero.
+| pipe          | pipe > yourfilename.txt | Optional. Since tableprint is incompatible with piping, we use a third optional input argument "pipe".
+
+> Note choosing a sample period: 
+Except for the radon measurements, the Wave Plus updates its current sensor values once every 5 minutes.
+Radon measurements are update once every hour.
 
 ## Printing data to the terminal window
 
-Run the Python script ```read_waveplus.py``` in the following way:
+By default, the ```read_waveplus.py``` script will print the current sensor values to the Rasberry Pi terminal.
+Run the Python script in the following way:
 
 ```
-pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py [SN] terminal
+pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py SN SAMPLE-PERIOD
 ```
 
-where you change [SN] with the 10-digit serial number. 
+where you change SN with the 10-digit serial number, and change SAMPLE-PERIOD to a numerical value of your choice.
 
 After a short delay, the script will print the current sensor values to the 
 Raspberry Pi terminal window. Exit the script using “Ctrl + c”.
@@ -159,10 +174,12 @@ Raspberry Pi terminal window. Exit the script using “Ctrl + c”.
 If you want to pipe the results to a text-file, you can run the script in the following way:
 
 ```
-pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py [SN] pipe > yourfile.txt
+pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py SN SAMPLE-PERIOD pipe > yourfilename.txt
 ```
 
-where you change [SN] with the 10-digit serial number. Exit the script using “Ctrl + c”.
+where you change SN with the 10-digit serial number, and change SAMPLE-PERIOD to a numerical value of your choice.
+
+Exit the script using “Ctrl + c”.
 
 # Sensor data description
 
@@ -177,5 +194,9 @@ where you change [SN] with the 10-digit serial number. Exit the script using “
 | TVOC level                    | ppb | Total volatile organic compounds level
 
 # Release notes
+
+Release dated 14-Dec-2018
+
+* Added SAMPLE-PERIOD as an input argument.
 
 Initial release 12-Dec-2018

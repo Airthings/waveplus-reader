@@ -37,26 +37,44 @@ import tableprint
 # ===============================
 
 if len(sys.argv) < 3:
-    print "ERROR: Missing input argument SN or MODE."
-    print "USAGE: read_waveplus.py [SN] [MODE]"
-    print "    where [SN] is the 10-digit serial number found under the magnetic backplate of your waveplus."
-    print "    where [MODE] is either terminal or pipe."
+    print "ERROR: Missing input argument SN or SAMPLE-PERIOD."
+    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
+    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
+    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
+    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
     sys.exit(1)
-elif str(sys.argv[1]).isdigit() is not True or len(sys.argv[1]) != 10:
+
+if sys.argv[1].isdigit() is not True or len(sys.argv[1]) != 10:
     print "ERROR: Invalid SN format."
-    print "USAGE: read_waveplus.py \"SN\" \"MODE\""
-    print "    where [SN] is the 10-digit serial number found under the magnetic backplate of your waveplus."
-    print "    where [MODE] is either terminal or pipe."
+    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
+    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
+    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
+    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
     sys.exit(1)
-elif sys.argv[2].lower()!='terminal' and sys.argv[2].lower()!='pipe':
-    print "ERROR: Invalid MODE argument."
-    print "USAGE: read_waveplus.py \"SN\" \"MODE\""
-    print "    where [SN] is the 10-digit serial number found under the magnetic backplate of your waveplus."
-    print "    where [MODE] is either terminal or pipe."
+
+if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
+    print "ERROR: Invalid SAMPLE-PERIOD. Must be a numerical value larger than zero."
+    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
+    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
+    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
+    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
     sys.exit(1)
+
+if len(sys.argv) > 3:
+    Mode = sys.argv[3].lower()
 else:
-    SerialNumber = int(sys.argv[1])
-    Mode         = sys.argv[2].lower()
+    Mode = 'terminal' # (default) print to terminal 
+
+if Mode!='pipe' and Mode!='terminal':
+    print "ERROR: Invalid piping method."
+    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
+    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
+    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
+    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
+    sys.exit(1)
+
+SerialNumber = int(sys.argv[1])
+SamplePeriod = int(sys.argv[2])
 
 # ====================================
 # Utility functions for WavePlus class
@@ -176,7 +194,9 @@ try:
     waveplus.connect()
     
     if (Mode=='terminal'):
-        print "Press ctrl-C to exit program"
+        print "\nPress ctrl+C to exit program\n"
+    
+    print "Device serial number: %s" %(SerialNumber)
     
     header = ['Humidity', 'Radon ST avg', 'Radon LT avg', 'Temperature', 'Pressure', 'CO2 level', 'VOC level']
     
@@ -207,7 +227,7 @@ try:
         elif (Mode=='pipe'):
             print data
             
-        time.sleep(2.0)
+        time.sleep(SamplePeriod)
             
 finally:
     waveplus.disconnect()
