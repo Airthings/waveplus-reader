@@ -18,7 +18,8 @@ temperature, air pressure, humidity, TVOCs and CO2.
   * [Printing data to the terminal window](#printing-data-to-the-terminal-window)
   * [Piping data to a text-file](#piping-data-to-a-text-file)
 * [Sensor data description](#sensor-data-description)
-* [Release notes](#release-notes)  
+* [Contribution](#contribution)
+* [Release notes](#release-notes)
 
 # Requirements
 
