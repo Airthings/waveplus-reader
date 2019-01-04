@@ -31,6 +31,7 @@ import sys
 import time
 import struct
 import tableprint
+import paho.mqtt.client as mqtt
 
 # ===============================
 # Script guards for correct usage
@@ -62,10 +63,14 @@ if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
 
 if len(sys.argv) > 3:
     Mode = sys.argv[3].lower()
+    if Mode == 'mqtt' and len(sys.argv > 4):
+        Broker = sys.argv[4]
+    else:
+        Broker = None
 else:
     Mode = 'terminal' # (default) print to terminal 
 
-if Mode!='pipe' and Mode!='terminal':
+if Mode!='pipe' and Mode!='terminal' and Mode!='mqtt':
     print ("ERROR: Invalid piping method.")
     print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
     print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
@@ -204,6 +209,19 @@ try:
         print (tableprint.header(header, width=12))
     elif (Mode=='pipe'):
         print (header)
+    elif Mode == 'mqtt':
+        sensors = waveplus.read()
+        topic = "waveplus/{}".format(SerialNumber)
+        client = mqtt.Client()
+        client.connect(Broker)
+        for i in range(NUMBER_OF_SENSORS):
+            topic = "waveplus/{0}/{1}".format(SerialNumber, header[i].replace(' ','_'))
+            info = client.publish(topic, sensors.getValue(i), retain=False)
+            info.wait_for_publish()
+            time.sleep(0.1)
+
+        client.disconnect()
+        exit(1)
         
     while True:
         sensors = None
