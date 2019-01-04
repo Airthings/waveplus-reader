@@ -37,27 +37,27 @@ import tableprint
 # ===============================
 
 if len(sys.argv) < 3:
-    print "ERROR: Missing input argument SN or SAMPLE-PERIOD."
-    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
-    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
-    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
-    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
+    print ("ERROR: Missing input argument SN or SAMPLE-PERIOD.")
+    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
+    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
+    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
 if sys.argv[1].isdigit() is not True or len(sys.argv[1]) != 10:
-    print "ERROR: Invalid SN format."
-    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
-    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
-    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
-    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
+    print ("ERROR: Invalid SN format.")
+    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
+    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
+    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
 if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
-    print "ERROR: Invalid SAMPLE-PERIOD. Must be a numerical value larger than zero."
-    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
-    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
-    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
-    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
+    print ("ERROR: Invalid SAMPLE-PERIOD. Must be a numerical value larger than zero.")
+    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
+    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
+    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
 if len(sys.argv) > 3:
@@ -66,11 +66,11 @@ else:
     Mode = 'terminal' # (default) print to terminal 
 
 if Mode!='pipe' and Mode!='terminal':
-    print "ERROR: Invalid piping method."
-    print "USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]"
-    print "    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus."
-    print "    where SAMPLE-PERIOD is the time in seconds between reading the current values."
-    print "    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt."
+    print ("ERROR: Invalid piping method.")
+    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
+    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
+    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
 SerialNumber = int(sys.argv[1])
@@ -124,8 +124,8 @@ class WavePlus():
                     break # exit for loop
         
         if (deviceFound is not True):
-            print "ERROR: Could not find device."
-            print "GUIDE: (1) Please verify the serial number. (2) Ensure that the device is advertising. (3) Retry connection."
+            print ("ERROR: Could not find device.")
+            print ("GUIDE: (1) Please verify the serial number. (2) Ensure that the device is advertising. (3) Retry connection.")
             sys.exit(1)
         else:
             self.periph = Peripheral(MacAddr)
@@ -172,8 +172,8 @@ class Sensors():
             self.sensor_data[SENSOR_IDX_CO2_LVL]              = rawData[8]*1.0
             self.sensor_data[SENSOR_IDX_VOC_LVL]              = rawData[9]*1.0
         else:
-            print "ERROR: Unknown sensor version.\n"
-            print "GUIDE: Contact Airthings for support.\n"
+            print ("ERROR: Unknown sensor version.\n")
+            print ("GUIDE: Contact Airthings for support.\n")
             sys.exit(1)
    
     def conv2radon(self, radon_raw):
@@ -194,22 +194,25 @@ try:
     waveplus.connect()
     
     if (Mode=='terminal'):
-        print "\nPress ctrl+C to exit program\n"
+        print ("\nPress ctrl+C to exit program\n")
     
-    print "Device serial number: %s" %(SerialNumber)
+    print ("Device serial number: %s" %(SerialNumber))
     
     header = ['Humidity', 'Radon ST avg', 'Radon LT avg', 'Temperature', 'Pressure', 'CO2 level', 'VOC level']
     
     if (Mode=='terminal'):
-        print tableprint.header(header, width=12)
+        print (tableprint.header(header, width=12))
     elif (Mode=='pipe'):
-        print header
+        print (header)
         
     while True:
         
-        # read values
-        sensors = waveplus.read()
-        
+        try:
+            # read values
+            sensors = waveplus.read()
+        except:
+            continue
+            
         # extract
         humidity     = str(sensors.getValue(SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
         radon_st_avg = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
@@ -223,9 +226,9 @@ try:
         data = [humidity, radon_st_avg, radon_lt_avg, temperature, pressure, CO2_lvl, VOC_lvl]
         
         if (Mode=='terminal'):
-            print tableprint.row(data, width=12)
+            print (tableprint.row(data, width=12))
         elif (Mode=='pipe'):
-            print data
+            print (data)
             
         time.sleep(SamplePeriod)
             
