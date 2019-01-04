@@ -206,13 +206,14 @@ try:
         print (header)
         
     while True:
-        
+        sensors = None
         try:
             # read values
             sensors = waveplus.read()
-        except:
+        except :
+            print("Exception when calling waveplus->read")
             continue
-            
+
         # extract
         humidity     = str(sensors.getValue(SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
         radon_st_avg = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
