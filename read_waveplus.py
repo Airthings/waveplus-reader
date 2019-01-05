@@ -63,7 +63,7 @@ if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
 
 if len(sys.argv) > 3:
     Mode = sys.argv[3].lower()
-    if Mode == 'mqtt' and len(sys.argv > 4):
+    if Mode == 'mqtt' and len(sys.argv) > 4:
         Broker = sys.argv[4]
     else:
         Broker = None
