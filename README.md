@@ -17,6 +17,7 @@ temperature, air pressure, humidity, TVOCs and CO2.
 * [Usage](#usage)
   * [Printing data to the terminal window](#printing-data-to-the-terminal-window)
   * [Piping data to a text-file](#piping-data-to-a-text-file)
+  * [Posting regularly to MQTT Server](#posting-regularly-to-mqtt-server)
 * [Sensor data description](#sensor-data-description)
 * [Contribution](#contribution)
 * [Release notes](#release-notes)
@@ -36,8 +37,8 @@ The following tables shows a compact overview of dependencies for this project.
 
 | package | version | Comments |
 |-------------|-------------|-------------|
-| python         | 2.7 | Tested with python 2.7.13
-| python-pip     |     | pip for python2.7
+| python         | 2.7 or 3.6 | Tested with python 2.7.13 and 3.6.5
+| python-pip     |     | pip for python 2.7 or python 3.6
 | git            |     | To download this project
 | libglib2.0-dev |     | For bluepy module
 
@@ -104,11 +105,12 @@ or install git to be able to clone this repo.
 pi@raspberrypi:~$ sudo apt-get install git
 ```
 
-Additionally, the ```read_waveplus.py``` script depends on the ```tableprint``` module
-to print nicely formated sensor data to the Raspberry Pi terminal at run-time.
+Additionally, the ```read_waveplus.py``` script depends on the ```tableprint``` module to print nicely formated sensor data to the Raspberry Pi terminal at run-time and the ```paho.mqtt``` module for communication with an MQTT server.
 
 ```
-pi@raspberrypi:~$ sudo pip2 install tableprint==0.8.0
+pi@raspberrypi:~$ sudo pip install tableprint==0.8.0
+pi@raspberrypi:~$ sudo pip install paho-mqtt
+
 ```
 
 > **Note:** The ```read_waveplus.py``` script has been tested with bluepy==1.2.0 and tableprint==0.8.0. You may download the latest versions at your own risk.
@@ -181,6 +183,38 @@ pi@raspberrypi:~/waveplus-reader $ sudo python2 read_waveplus.py SN SAMPLE-PERIO
 where you change ```SN``` with the 10-digit serial number, and change ```SAMPLE-PERIOD``` to a numerical value of your choice.
 
 Exit the script using ```Ctrl+C```.
+
+## Posting regularly to MQTT Server
+
+If you need the data available on an home automation system, you can set up the script to post data read from the Airthings Wave plus to an MQTT server (like mosquitto). Invoking the read_waveplus.py with 
+```
+pi@raspberrypi:~/waveplus-reader $ sudo python3 read_waveplus.py SN SAMPLE-PERIOD mqtt SERVER_ADDRESS
+```
+will read values from Airthings Wave Plus and post all values on the given mqtt server, assuming there is no login required. 
+```SN``` should be the serial number of your device, ```SAMPLE_PERIOD``` is ignored and ```SERVER_ADDRESS``` is the ip-address of the mqtt server you want your data posted to.
+
+The values wil be posted as the following topics:
+```
+waveplus/SN/MEASUREMENT_TYPE
+```
+```MEASUREMENT_TYPE``` would be modified name of the measurements. Examples of topics would be 
+```
+waveplus/2930002359/Humidity 
+waveplus/2930002359/Radon_ST_avg 
+...
+waveplus/2930002359/VOC_level
+```
+
+Practical setup would be to add a line to your cron table:
+```
+pi@raspberrypi:~ $ sudo crontab -e
+```
+The following line will make a read and post every 5 minutes from your Raspberry Pi to the mqtt server located at ```192.168.0.16```:
+ 
+```
+*/5 * * * *  sudo python3 /home/pi/waveplus-reader/read_waveplus.py 2930002359 60 mqtt 192.168.0.16
+```
+
 
 # Sensor data description
 
