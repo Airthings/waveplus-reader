@@ -211,7 +211,6 @@ try:
         print (header)
     elif Mode == 'mqtt':
         sensors = waveplus.read()
-        topic = "waveplus/{}".format(SerialNumber)
         client = mqtt.Client()
         client.connect(Broker)
         for i in range(NUMBER_OF_SENSORS):
