@@ -36,29 +36,26 @@ import paho.mqtt.client as mqtt
 # ===============================
 # Script guards for correct usage
 # ===============================
-
-if len(sys.argv) < 3:
-    print ("ERROR: Missing input argument SN or SAMPLE-PERIOD.")
+def print_usage():
     print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
     print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
     print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
     print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
+    print ("    or [mqtt serveraddress] is optional and specifies that you want to post the results to an MQTT server on the IP-address serveraddress")
+    
+if len(sys.argv) < 3:
+    print ("ERROR: Missing input argument SN or SAMPLE-PERIOD.")
+    print_usage()
     sys.exit(1)
 
 if sys.argv[1].isdigit() is not True or len(sys.argv[1]) != 10:
     print ("ERROR: Invalid SN format.")
-    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
-    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
-    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
-    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
+    print_usage()
     sys.exit(1)
 
 if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
     print ("ERROR: Invalid SAMPLE-PERIOD. Must be a numerical value larger than zero.")
-    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
-    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
-    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
-    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
+    print_usage()
     sys.exit(1)
 
 if len(sys.argv) > 3:
@@ -72,10 +69,7 @@ else:
 
 if Mode!='pipe' and Mode!='terminal' and Mode!='mqtt':
     print ("ERROR: Invalid piping method.")
-    print ("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
-    print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
-    print ("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
-    print ("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
+    print_usage()
     sys.exit(1)
 
 SerialNumber = int(sys.argv[1])
@@ -111,32 +105,42 @@ class WavePlus():
     def __init__(self, SerialNumber):
         self.periph        = None
         self.curr_val_char = None
+        self.MacAddr       = None
+        self.SN            = SerialNumber
         self.uuid          = UUID("b42e2a68-ade7-11e4-89d3-123b93f75cba")
 
     def connect(self):
-        scanner     = Scanner().withDelegate(DefaultDelegate())
-        deviceFound = False
-        searchCount = 0
-        while deviceFound is False and searchCount < 50:
-            devices      = scanner.scan(0.1) # 0.1 seconds scan period
-            searchCount += 1
-            for dev in devices:
-                ManuData = dev.getValueText(255)
-                SN = parseSerialNumber(ManuData)
-                if (SN == SerialNumber):
-                    MacAddr = dev.addr
-                    deviceFound  = True # exits the while loop on next conditional check
-                    break # exit for loop
+        # Auto-discover device on first connection
+        if (self.MacAddr is None):
+            scanner     = Scanner().withDelegate(DefaultDelegate())
+            searchCount = 0
+            while self.MacAddr is None and searchCount < 50:
+                devices      = scanner.scan(0.1) # 0.1 seconds scan period
+                searchCount += 1
+                for dev in devices:
+                    ManuData = dev.getValueText(255)
+                    SN = parseSerialNumber(ManuData)
+                    if (SN == self.SN):
+                        self.MacAddr = dev.addr # exits the while loop on next conditional check
+                        break # exit for loop
+            
+            if (self.MacAddr is None):
+                print ("ERROR: Could not find device.")
+                print ("GUIDE: (1) Please verify the serial number.")
+                print ("       (2) Ensure that the device is advertising.")
+                print ("       (3) Retry connection.")
+                sys.exit(1)
         
-        if (deviceFound is not True):
-            print ("ERROR: Could not find device.")
-            print ("GUIDE: (1) Please verify the serial number. (2) Ensure that the device is advertising. (3) Retry connection.")
-            sys.exit(1)
-        else:
-            self.periph = Peripheral(MacAddr)
+        # Connect to device
+        if (self.periph is None):
+            self.periph = Peripheral(self.MacAddr)
+        if (self.curr_val_char is None):
             self.curr_val_char = self.periph.getCharacteristics(uuid=self.uuid)[0]
         
     def read(self):
+        if (self.curr_val_char is None):
+            print ("ERROR: Devices are not connected.")
+            sys.exit(1)            
         rawdata = self.curr_val_char.read()
         rawdata = struct.unpack('BBBBHHHHHHHH', rawdata)
         sensors = Sensors()
@@ -146,6 +150,8 @@ class WavePlus():
     def disconnect(self):
         if self.periph is not None:
             self.periph.disconnect()
+            self.periph = None
+            self.curr_val_char = None
 
 # ===================================
 # Class Sensor and sensor definitions
@@ -194,22 +200,18 @@ class Sensors():
         return self.sensor_units[sensor_index]
 
 try:
-    #---- Connect to device ----#
+    #---- Initialize ----#
     waveplus = WavePlus(SerialNumber)
-    waveplus.connect()
     
     if (Mode=='terminal'):
         print ("\nPress ctrl+C to exit program\n")
     
-    print ("Device serial number: %s" %(SerialNumber))
-    
     header = ['Humidity', 'Radon ST avg', 'Radon LT avg', 'Temperature', 'Pressure', 'CO2 level', 'VOC level']
     
-    if (Mode=='terminal'):
-        print (tableprint.header(header, width=12))
-    elif (Mode=='pipe'):
-        print (header)
-    elif Mode == 'mqtt':
+    if Mode == 'mqtt':      
+        waveplus.connect()
+        
+        # read values
         sensors = waveplus.read()
         client = mqtt.Client()
         client.connect(Broker)
@@ -221,33 +223,40 @@ try:
 
         client.disconnect()
         exit(1)
-        
+
+    print ("Device serial number: %s" %(SerialNumber))
+    
+    if (Mode=='terminal'):
+        print (tableprint.header(header, width=12))
+    elif (Mode=='pipe'):
+        print (header)
+
+
     while True:
         sensors = None
-        try:
-            # read values
-            sensors = waveplus.read()
+        waveplus.connect()
+        
+        # read values
+        sensors = waveplus.read()
 
-            # extract
-            humidity     = str(sensors.getValue(SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
-            radon_st_avg = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
-            radon_lt_avg = str(sensors.getValue(SENSOR_IDX_RADON_LONG_TERM_AVG))  + " " + str(sensors.getUnit(SENSOR_IDX_RADON_LONG_TERM_AVG))
-            temperature  = str(sensors.getValue(SENSOR_IDX_TEMPERATURE))          + " " + str(sensors.getUnit(SENSOR_IDX_TEMPERATURE))
-            pressure     = str(sensors.getValue(SENSOR_IDX_REL_ATM_PRESSURE))     + " " + str(sensors.getUnit(SENSOR_IDX_REL_ATM_PRESSURE))
-            CO2_lvl      = str(sensors.getValue(SENSOR_IDX_CO2_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_CO2_LVL))
-            VOC_lvl      = str(sensors.getValue(SENSOR_IDX_VOC_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_VOC_LVL))
+        # extract
+        humidity     = str(sensors.getValue(SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
+        radon_st_avg = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
+        radon_lt_avg = str(sensors.getValue(SENSOR_IDX_RADON_LONG_TERM_AVG))  + " " + str(sensors.getUnit(SENSOR_IDX_RADON_LONG_TERM_AVG))
+        temperature  = str(sensors.getValue(SENSOR_IDX_TEMPERATURE))          + " " + str(sensors.getUnit(SENSOR_IDX_TEMPERATURE))
+        pressure     = str(sensors.getValue(SENSOR_IDX_REL_ATM_PRESSURE))     + " " + str(sensors.getUnit(SENSOR_IDX_REL_ATM_PRESSURE))
+        CO2_lvl      = str(sensors.getValue(SENSOR_IDX_CO2_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_CO2_LVL))
+        VOC_lvl      = str(sensors.getValue(SENSOR_IDX_VOC_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_VOC_LVL))
+        
+        # Print data
+        data = [humidity, radon_st_avg, radon_lt_avg, temperature, pressure, CO2_lvl, VOC_lvl]
+        
+        if (Mode=='terminal'):
+            print (tableprint.row(data, width=12))
+        elif (Mode=='pipe'):
+            print (data)
             
-            # Print data
-            data = [humidity, radon_st_avg, radon_lt_avg, temperature, pressure, CO2_lvl, VOC_lvl]
-            
-            if (Mode=='terminal'):
-                print (tableprint.row(data, width=12))
-            elif (Mode=='pipe'):
-                print (data)
-            
-        except :
-            print("Exception when calling waveplus->read")
-
+        waveplus.disconnect()
         time.sleep(SamplePeriod)
             
 finally:

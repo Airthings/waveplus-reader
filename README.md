@@ -236,8 +236,14 @@ Let us know how it went! If you want contribute, you can do so by posting issues
 
 # Release notes
 
+Release dated 14-Jan-2019
+
+* [bug] Fixed issue ([#4][i4])
+
 Release dated 14-Dec-2018
 
 * Added SAMPLE-PERIOD as an input argument.
 
 Initial release 12-Dec-2018
+
+[i4]: https://github.com/Airthings/waveplus-reader/issues/4
