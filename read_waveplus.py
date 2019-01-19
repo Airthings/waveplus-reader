@@ -119,10 +119,11 @@ class WavePlus():
                 searchCount += 1
                 for dev in devices:
                     ManuData = dev.getValueText(255)
-                    SN = parseSerialNumber(ManuData)
-                    if (SN == self.SN):
-                        self.MacAddr = dev.addr # exits the while loop on next conditional check
-                        break # exit for loop
+                    if ManuData != None:
+                        SN = parseSerialNumber(ManuData)
+                        if (SN == self.SN):
+                            self.MacAddr = dev.addr # exits the while loop on next conditional check
+                            break # exit for loop
             
             if (self.MacAddr is None):
                 print ("ERROR: Could not find device.")
