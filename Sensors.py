@@ -20,6 +20,8 @@ class Sensors():
         self.sensor_version = None
         self.sensor_data    = [None]*self.NUMBER_OF_SENSORS
         self.sensor_units   = ["%rH", "Bq/m3", "Bq/m3", "degC", "hPa", "ppm", "ppb"]
+        self.header = ['Humidity', 'Radon ST avg', 'Radon LT avg', 'Temperature', 'Pressure', 'CO2 level', 'VOC level']
+
     
     def set(self, rawData):
         self.sensor_version = rawData[0]

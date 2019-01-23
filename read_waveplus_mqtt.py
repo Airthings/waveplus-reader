@@ -29,6 +29,7 @@
 import sys
 import time
 import socket
+import json
 import paho.mqtt.client as mqtt
 from Sensors import Sensors
 from WavePlus import WavePlus
@@ -63,21 +64,28 @@ except socket.error:
     print_usage()
     sys.exit(1)
 
-header = ['Humidity', 'Radon ST avg', 'Radon LT avg', 'Temperature', 'Pressure', 'CO2 level', 'VOC level']
-
 #---- Initialize ----#
 waveplus = WavePlus(SerialNumber)
 waveplus.connect()
 
 # read values
+jsonPackage = dict()
 sensors = waveplus.read()
 client = mqtt.Client()
 client.connect(Broker)
 for i in range(sensors.NUMBER_OF_SENSORS):
-    topic = "waveplus/{0}/{1}".format(SerialNumber, header[i].replace(' ','_'))
+    topic = "waveplus/{0}/{1}".format(SerialNumber, sensors.header[i].replace(' ','_'))
     info = client.publish(topic, sensors.getValue(i), retain=False)
     info.wait_for_publish()
     time.sleep(0.1)
+    jsonPackage[sensors.header[i].replace(' ','_')]={'value':sensors.getValue(i), 'notation':sensors.sensor_units[i]}
 
+# Post all values as json object
+topic = "waveplus/{0}/".format(SerialNumber)
+info = client.publish(topic, json.dumps(jsonPackage), retain=False)
+info.wait_for_publish()
+time.sleep(0.1)
+
+# End it all
 client.disconnect()
 waveplus.disconnect()

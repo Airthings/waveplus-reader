@@ -29,7 +29,6 @@
 import sys
 import time
 import tableprint
-import paho.mqtt.client as mqtt
 from Sensors import Sensors
 from WavePlus import WavePlus
 

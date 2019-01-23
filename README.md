@@ -188,12 +188,12 @@ Exit the script using ```Ctrl+C```.
 
 If you need the data available on an home automation system, you can set up the script to post data read from the Airthings Wave plus to an MQTT server (like mosquitto). Invoking the read_waveplus.py with 
 ```
-pi@raspberrypi:~/waveplus-reader $ sudo python3 read_waveplus.py SN SAMPLE-PERIOD mqtt SERVER_ADDRESS
+pi@raspberrypi:~/waveplus-reader $ sudo python3 read_waveplus_mqtt.py SN SERVER_ADDRESS
 ```
 will read values from Airthings Wave Plus and post all values on the given mqtt server, assuming there is no login required. 
-```SN``` should be the serial number of your device, ```SAMPLE_PERIOD``` is ignored and ```SERVER_ADDRESS``` is the ip-address of the mqtt server you want your data posted to.
+```SN``` should be the serial number of your device and ```SERVER_ADDRESS``` is the ip-address of the mqtt server you want your data posted to.
 
-The values wil be posted as the following topics:
+The values wil be posted both as a json object containing all values and as individual individual values the following topics:
 ```
 waveplus/SN/MEASUREMENT_TYPE
 ```
@@ -209,10 +209,12 @@ Practical setup would be to add a line to your cron table:
 ```
 pi@raspberrypi:~ $ sudo crontab -e
 ```
+Note the use of 'sudo': needed for the scripts access to the BTLE device.
+
 The following line will make a read and post every 5 minutes from your Raspberry Pi to the mqtt server located at ```192.168.0.16```:
  
 ```
-*/5 * * * *  sudo python3 /home/pi/waveplus-reader/read_waveplus.py 2930002359 60 mqtt 192.168.0.16
+*/5 * * * *  sudo python3 /home/pi/waveplus-reader/read_waveplus_mqtt.py 2930002359 192.168.0.16
 ```
 
 
