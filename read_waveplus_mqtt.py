@@ -38,7 +38,7 @@ from WavePlus import WavePlus
 # Script guards for correct usage
 # ===============================
 def print_usage():
-    print ("USAGE: read_waveplus.py SN SERVERADDRESS")
+    print ("USAGE: read_waveplus_mqtt.py SN SERVERADDRESS")
     print ("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus")
     print ("    and SERVERADDRESS specifies the IP-address of the MQTT server you want to post the results to.")
     
