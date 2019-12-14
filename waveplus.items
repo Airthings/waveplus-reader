@@ -1,0 +1,14 @@
+// Wave Plus
+// Replace <device_sn> with the serial no of your device
+Group WavePlus
+Number		waveplus_livingroom_humidity	"Luftfuktighet i stua"		(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/Humidity:state:default]" }
+Number		waveplus_livingroom_co2level	"CO2 i stua"			    (WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/CO2_level:state:default]" }
+Number		waveplus_livingroom_pressure	"Lufttrykk i stua"		    (WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/Pressure:state:default]" }
+Number		waveplus_livingroom_radon_lta	"Radon lang sikt gj.snitt"	(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/Radon_LT_avg:state:default]" }
+Number		waveplus_livingroom_radon_sta	"Radon kort sikt gj.snitt"	(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/Radon_ST_avg:state:default]" }
+Number		waveplus_livingroom_temperature	"Temperatur i stua"		    (WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/Temperature:state:default]" }
+Number		waveplus_livingroom_voc_level	"TVOC i stua"			    (WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>/VOC_level:state:default]" }
+String		waveplus_temperature		    "Temperatur [%.2f °C]"		(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>:state:JSONPATH($.Temperature.value)]" }
+String		waveplus_radon			        "Radon [%.0f Bq/m3]"		(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>:state:JSONPATH($.Radon_ST_avg.value)]" }
+String		waveplus_total_voc		        "Total VOC [%.0f ppbC]"		(WavePlus)	{ mqtt="<[mqtt:waveplus/<device_sn>:state:JSONPATH($.VOC_level.value)]" }
+
