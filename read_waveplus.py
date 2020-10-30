@@ -81,7 +81,7 @@ SamplePeriod = int(sys.argv[2])
 # ====================================
 
 def parseSerialNumber(ManuDataHexStr):
-    if (ManuDataHexStr == "None"):
+    if (ManuDataHexStr == None or ManuDataHexStr == "None"):
         SN = "Unknown"
     else:
         ManuData = bytearray.fromhex(ManuDataHexStr)
