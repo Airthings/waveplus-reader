@@ -143,7 +143,7 @@ class WavePlus():
             print "ERROR: Devices are not connected."
             sys.exit(1)            
         rawdata = self.curr_val_char.read()
-        rawdata = struct.unpack('BBBBHHHHHHHH', rawdata)
+        rawdata = struct.unpack('<BBBBHHHHHHHH', rawdata)
         sensors = Sensors()
         sensors.set(rawdata)
         return sensors

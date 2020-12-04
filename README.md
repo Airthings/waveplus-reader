@@ -9,17 +9,18 @@ temperature, air pressure, humidity, TVOCs and CO2.
 
 **Table of contents**
 
-* [Requirements](#requirements)
-  * [Setup Raspberry Pi](#setup-Raspberry-pi)
-  * [Turn on the BLE interface](#turn-on-the-ble-interface)
-  * [Installing linux and python packages](#installing-linux-and-python-packages)
-  * [Downloading script](#downloading-script)
-* [Usage](#usage)
-  * [Printing data to the terminal window](#printing-data-to-the-terminal-window)
-  * [Piping data to a text-file](#piping-data-to-a-text-file)
-* [Sensor data description](#sensor-data-description)
-* [Contribution](#contribution)
-* [Release notes](#release-notes)
+- [Airthings Wave Plus Sensor Reader](#airthings-wave-plus-sensor-reader)
+- [Requirements](#requirements)
+  - [Setup Raspberry Pi](#setup-raspberry-pi)
+  - [Turn on the BLE interface](#turn-on-the-ble-interface)
+  - [Installing linux and python packages](#installing-linux-and-python-packages)
+  - [Downloading script](#downloading-script)
+- [Usage](#usage)
+  - [Printing data to the terminal window](#printing-data-to-the-terminal-window)
+  - [Piping data to a text-file](#piping-data-to-a-text-file)
+- [Sensor data description](#sensor-data-description)
+- [Contribution](#contribution)
+- [Release notes](#release-notes)
 
 # Requirements
 
@@ -201,6 +202,10 @@ Let us know how it went! If you want contribute, you can do so by posting issues
 [here](https://github.com/Airthings/waveplus-reader/pulls).
 
 # Release notes
+
+Release dated 04-Dec-2020
+
+* [bug] Fixed missing little-endian specifier.
 
 Release dated 14-Jan-2019
 
