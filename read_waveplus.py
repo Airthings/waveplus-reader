@@ -26,21 +26,25 @@
 # Module import dependencies
 # ===============================
 
-from bluepy.btle import UUID, Peripheral, Scanner, DefaultDelegate
+from bluepy.btle import UUID, Peripheral, ADDR_TYPE_RANDOM, Scanner, DefaultDelegate
 import sys
 import time
 import struct
 import tableprint
+import paho.mqtt.publish as mqtt
+import json
 
 # ===============================
 # Script guards for correct usage
 # ===============================
-
-if len(sys.argv) < 3:
+if len(sys.argv) < 6:
     print("ERROR: Missing input argument SN or SAMPLE-PERIOD.")
     print("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
     print("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
     print("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print("    where MQTT-HOST is the hostname of your mqtt broker.")
+    print("    where MQTT-PORT is port of your MQTT broker.")
+    print("    where MQTT-TOPIC is the topic to post data to.")
     print("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
@@ -49,6 +53,9 @@ if sys.argv[1].isdigit() is not True or len(sys.argv[1]) != 10:
     print("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
     print("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
     print("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print("    where MQTT-HOST is the hostname of your mqtt broker.")
+    print("    where MQTT-PORT is port of your MQTT broker.")
+    print("    where MQTT-TOPIC is the topic to post data to.")
     print("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
@@ -57,11 +64,17 @@ if sys.argv[2].isdigit() is not True or int(sys.argv[2])<0:
     print("USAGE: read_waveplus.py SN SAMPLE-PERIOD [pipe > yourfile.txt]")
     print("    where SN is the 10-digit serial number found under the magnetic backplate of your Wave Plus.")
     print("    where SAMPLE-PERIOD is the time in seconds between reading the current values.")
+    print("    where MQTT-HOST is the hostname of your mqtt broker.")
+    print("    where MQTT-PORT is port of your MQTT broker.")
+    print("    where MQTT-TOPIC is the topic to post data to.")
     print("    where [pipe > yourfile.txt] is optional and specifies that you want to pipe your results to yourfile.txt.")
     sys.exit(1)
 
-if len(sys.argv) > 3:
-    Mode = sys.argv[3].lower()
+if sys.argv[4].isdigit() is not True or int(sys.argv[4])<0:
+    print("ERROR: Invalid MQTT-PORT. Must be numerical value larger than zero.")
+
+if len(sys.argv) > 6:
+    Mode = sys.argv[6].lower()
 else:
     Mode = 'terminal' # (default) print to terminal 
 
@@ -75,6 +88,9 @@ if Mode!='pipe' and Mode!='terminal':
 
 SerialNumber = int(sys.argv[1])
 SamplePeriod = int(sys.argv[2])
+MqttBroker = sys.argv[3]
+MqttPort = int(sys.argv[4])
+MqttTopic = sys.argv[5]
 
 # ====================================
 # Utility functions for WavePlus class
@@ -94,6 +110,18 @@ def parseSerialNumber(ManuDataHexStr):
         else:
             SN = "Unknown"
     return SN
+
+class sensorMessage():
+    def __init__(self, address, port, topic):
+        self.address = address
+        self.port = port
+        self.topic = topic
+        self.client = mqtt.Client("waveplus_reader")
+
+    def send(self, message):
+        self.client.connect(self.address, port=int(self.port))
+        self.client.publish(self.topic, message, 0, True)
+        self.client.disconnect()
 
 # ===============================
 # Class WavePlus
@@ -115,7 +143,7 @@ class WavePlus():
         if (self.MacAddr is None):
             scanner     = Scanner().withDelegate(DefaultDelegate())
             searchCount = 0
-            while self.MacAddr is None and searchCount < 50:
+            while self.MacAddr is None and searchCount < 500:
                 devices      = scanner.scan(0.1) # 0.1 seconds scan period
                 searchCount += 1
                 for dev in devices:
@@ -215,32 +243,75 @@ try:
         print(tableprint.header(header, width=12))
     elif (Mode=='pipe'):
         print(header)
-        
+
     while True:
-        
-        waveplus.connect()
-        
-        # read values
-        sensors = waveplus.read()
-        
-        # extract
-        humidity     = str(sensors.getValue(SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
-        radon_st_avg = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
-        radon_lt_avg = str(sensors.getValue(SENSOR_IDX_RADON_LONG_TERM_AVG))  + " " + str(sensors.getUnit(SENSOR_IDX_RADON_LONG_TERM_AVG))
-        temperature  = str(sensors.getValue(SENSOR_IDX_TEMPERATURE))          + " " + str(sensors.getUnit(SENSOR_IDX_TEMPERATURE))
-        pressure     = str(sensors.getValue(SENSOR_IDX_REL_ATM_PRESSURE))     + " " + str(sensors.getUnit(SENSOR_IDX_REL_ATM_PRESSURE))
-        CO2_lvl      = str(sensors.getValue(SENSOR_IDX_CO2_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_CO2_LVL))
-        VOC_lvl      = str(sensors.getValue(SENSOR_IDX_VOC_LVL))              + " " + str(sensors.getUnit(SENSOR_IDX_VOC_LVL))
-        
-        # Print data
-        data = [humidity, radon_st_avg, radon_lt_avg, temperature, pressure, CO2_lvl, VOC_lvl]
-        
-        if (Mode=='terminal'):
-            print(tableprint.row(data, width=12))
-        elif (Mode=='pipe'):
-            print(data)
-        
-        waveplus.disconnect()
+  
+        try:
+            print("trying to connect to waveplus")
+            waveplus.connect()
+            
+            # read values
+            print("trying to read sensor values")
+            sensors = waveplus.read()
+            
+            # extract
+            humidity_val = str(sensors.getValue(SENSOR_IDX_HUMIDITY))
+            radon_st_avg_val = str(sensors.getValue(SENSOR_IDX_RADON_SHORT_TERM_AVG))
+            radon_lt_avg_val = str(sensors.getValue(SENSOR_IDX_RADON_LONG_TERM_AVG))
+            temperature_val  = str(sensors.getValue(SENSOR_IDX_TEMPERATURE))
+            pressure_val     = str(sensors.getValue(SENSOR_IDX_REL_ATM_PRESSURE))
+            co2_lvl_val  = str(sensors.getValue(SENSOR_IDX_CO2_LVL))
+            voc_lvl_val  = str(sensors.getValue(SENSOR_IDX_VOC_LVL))            
+
+            humidity_unit = str(sensors.getUnit(SENSOR_IDX_HUMIDITY))
+            radon_st_avg_unit = str(sensors.getUnit(SENSOR_IDX_RADON_SHORT_TERM_AVG))
+            radon_lt_avg_unit = str(sensors.getUnit(SENSOR_IDX_RADON_LONG_TERM_AVG))
+            temperature_unit  = str(sensors.getUnit(SENSOR_IDX_TEMPERATURE))
+            pressure_unit     = str(sensors.getUnit(SENSOR_IDX_REL_ATM_PRESSURE))
+            co2_lvl_unit  = str(sensors.getUnit(SENSOR_IDX_CO2_LVL))
+            voc_lvl_unit  = str(sensors.getUnit(SENSOR_IDX_VOC_LVL))            
+
+            humidity     = humidity_val      + " " + humidity_unit
+            radon_st_avg = radon_st_avg_val  + " " + radon_st_avg_unit
+            radon_lt_avg = radon_lt_avg_val  + " " + radon_lt_avg_unit
+            temperature  = temperature_val   + " " + temperature_unit
+            pressure     = pressure_val      + " " + pressure_unit
+            CO2_lvl      = co2_lvl_val       + " " + co2_lvl_unit
+            VOC_lvl      = voc_lvl_val       + " " + voc_lvl_unit
+            
+            # Print data
+            data = [humidity, radon_st_avg, radon_lt_avg, temperature, pressure, CO2_lvl, VOC_lvl]
+            
+            if (Mode=='terminal'):
+                print(tableprint.row(data, width=12))
+            elif (Mode=='pipe'):
+                print(data)
+
+            msgData = {}
+            msgData['Time'] = time.asctime( time.localtime(time.time()) )
+            msgData['humidity'] = humidity_val
+            msgData['radon_st_avg'] = radon_st_avg_val
+            msgData['radon_lt_avg'] = radon_lt_avg_val
+            msgData['temperature'] = temperature_val
+            msgData['pressure'] = pressure_val
+            msgData['co2_lvl'] = co2_lvl_val
+            msgData['voc_lvl'] = voc_lvl_val
+            msgData['humidity_unit'] = humidity_unit
+            msgData['radon_st_avg_unit'] = radon_st_avg_unit
+            msgData['radon_lt_avg_unit'] = radon_lt_avg_unit
+            msgData['temperature_unit'] = temperature_unit
+            msgData['pressure_unit'] = pressure_unit
+            msgData['co2_lvl_unit'] = co2_lvl_unit
+            msgData['voc_lvl_unit'] = voc_lvl_unit
+            json_data = json.dumps(msgData)
+            #client.send(json_data)
+            mqtt.single(MqttTopic,json_data,hostname=MqttBroker,port=MqttPort,client_id="waveplus_bridge")
+
+            
+            
+            waveplus.disconnect()
+        except Exception as e:
+            print("failure:" + str(e))
         
         time.sleep(SamplePeriod)
             
